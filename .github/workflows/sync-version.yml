@@ -92,9 +92,7 @@ jobs:
             exit 0
           fi
 
-          PR_BODY=$(printf \
-            "release: yes\n\n## Release Notes (from primary repo)\n\n%s\n" \
-            "$RELEASE_NOTES")
+          PR_BODY=$(printf PR_BODY=$(printf "## Release Notes (from primary repo)\n\n%s\n\n---\n_To publish this release, add \`release: yes\` to the merge commit message when merging._\n" "$RELEASE_NOTES")
 
           gh pr create \
             --base master \
