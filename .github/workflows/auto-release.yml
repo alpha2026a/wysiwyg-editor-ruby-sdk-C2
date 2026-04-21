@@ -19,23 +19,24 @@ jobs:
       # -------------------------------------------------
       # Require "release: yes"
       # -------------------------------------------------
-      - name: Check release intent
-        id: check
-        uses: actions/github-script@v6
-        with:
-          github-token: ${{ secrets.PAT }}
-          script: |
-            const text =
-              (context.payload.pull_request.title || '') + ' ' +
-              (context.payload.pull_request.body || '');
-            core.setOutput(
-              'release',
-              /release:\s*yes/i.test(text) ? 'true' : 'false'
-            );
- 
-      - name: Stop if not a release
-        if: steps.check.outputs.release == 'false'
-        run: exit 0
+     - name: Check release intent
+       id: check
+       uses: actions/github-script@v6
+       with:
+         github-token: ${{ secrets.PAT }}
+         script: |
+           const commit = await github.rest.git.getCommit({
+             owner: context.repo.owner,
+             repo: context.repo.repo,
+             commit_sha: context.payload.pull_request.merge_commit_sha
+           });
+           const message = commit.data.message;
+           const isRelease = /release:\s*yes/i.test(message);
+           core.setOutput('release', isRelease ? 'true' : 'false');
+       
+            - name: Stop if not a release
+              if: steps.check.outputs.release == 'false'
+              run: exit 0
  
       # -------------------------------------------------
       # Checkout merged code
@@ -89,11 +90,16 @@ jobs:
       # Create GitHub Release (NO auto notes)
       # -------------------------------------------------
       - name: Create GitHub Release
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: "v${{ env.VERSION }}"
-          name: "Ruby SDK Release v${{ env.VERSION }}"
-          body_path: release_notes.txt
-          files: "*.gem"
         env:
           GITHUB_TOKEN: ${{ secrets.PAT }}
+        run: |
+          # Prevent duplicate releases
+          if gh release view "v${VERSION}" >/dev/null 2>&1; then
+            echo "ℹ️ Release v${VERSION} already exists. Skipping."
+            exit 0
+          fi
+
+          gh release create "v${VERSION}" \
+            --title "Release ${VERSION}" \
+            --notes "$RELEASE_NOTES" \
+            --latest
