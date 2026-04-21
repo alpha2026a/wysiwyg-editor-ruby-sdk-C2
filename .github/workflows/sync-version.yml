@@ -37,7 +37,21 @@ jobs:
  
           echo "VERSION=$VERSION" >> $GITHUB_ENV
           echo "Dispatching version $VERSION"
- 
+
+
+      - name: Prepare release branch
+        run: |
+          BRANCH="release-v${VERSION}"
+          echo "BRANCH=$BRANCH" >> $GITHUB_ENV
+
+          git fetch origin
+
+          if git ls-remote --heads origin "$BRANCH" | grep -q "$BRANCH"; then
+            git checkout "$BRANCH"
+            git pull origin "$BRANCH"
+          else
+            git checkout -b "$BRANCH"
+          fi
 
       - name: Update version.rb
         run: |
