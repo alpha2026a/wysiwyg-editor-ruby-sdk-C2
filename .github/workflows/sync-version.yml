@@ -83,9 +83,22 @@ jobs:
       - name: Create Pull Request
         env:
           GH_TOKEN: ${{ secrets.PAT }}
+          RELEASE_NOTES: ${{ github.event.client_payload.release_notes }}
         run: |
+          git fetch origin master
+
+          if git diff --quiet origin/master..."$BRANCH"; then
+            echo "No commits between $BRANCH and master. Skipping PR creation."
+            exit 0
+          fi
+
+          PR_BODY=$(printf \
+            "release: yes\n\n## Release Notes (from primary repo)\n\n%s\n" \
+            "$RELEASE_NOTES")
+
           gh pr create \
             --base master \
-            --head release-v${VERSION} \
+            --head "$BRANCH" \
             --title "Release v${VERSION}" \
-            --body "release: yes"
+            --body "$PR_BODY" \
+            || echo "Pull request already exists"
