@@ -16,13 +16,10 @@ jobs:
     environment: PAT
  
     steps:
-      # -------------------------------------------------
-      # Require "release: yes"
-      # -------------------------------------------------
-     - name: Check release intent
-       id: check
-       uses: actions/github-script@v6
-       with:
+      - name: Check release intent
+        id: check
+        uses: actions/github-script@v6
+        with:
          github-token: ${{ secrets.PAT }}
          script: |
            const commit = await github.rest.git.getCommit({
@@ -38,17 +35,13 @@ jobs:
               if: steps.check.outputs.release == 'false'
               run: exit 0
  
-      # -------------------------------------------------
-      # Checkout merged code
-      # -------------------------------------------------
+
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
           token: ${{ secrets.PAT }}
  
-      # -------------------------------------------------
-      # Read version (authoritative source)
-      # -------------------------------------------------
+
       - name: Read version from gemspec
         run: |
           VERSION=$(ruby -e "
@@ -58,24 +51,18 @@ jobs:
           echo "VERSION=$VERSION" >> $GITHUB_ENV
           echo "Releasing version: $VERSION"
  
-      # -------------------------------------------------
-      # Setup Ruby
-      # -------------------------------------------------
+
       - name: Setup Ruby
         uses: ruby/setup-ruby@v1
         with:
           ruby-version: '3.1'
  
-      # -------------------------------------------------
-      # Build gem (matches Froala docs)
-      # -------------------------------------------------
+
       - name: Build gem
         run: |
           gem build wysiwyg-editor-ruby-sdk.gemspec
  
-      # -------------------------------------------------
-      # Push gem to RubyGems (OFFICIAL STEP)
-      # -------------------------------------------------
+
       - name: Publish to RubyGems
         env:
           RUBYGEMS_API_KEY: ${{ secrets.RUBYGEMS_API_KEY }}
@@ -86,9 +73,7 @@ jobs:
  
           gem push froala-editor-sdk-${VERSION}.gem
  
-      # -------------------------------------------------
-      # Create GitHub Release (NO auto notes)
-      # -------------------------------------------------
+
       - name: Create GitHub Release
         env:
           GITHUB_TOKEN: ${{ secrets.PAT }}
