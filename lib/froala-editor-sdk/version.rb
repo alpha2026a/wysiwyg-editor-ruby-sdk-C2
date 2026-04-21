@@ -1,6 +1,6 @@
 module FroalaEditorSDK
   module Version
-    Major = 7
+    Major = 8
     Minor = 0
     Tiny = 0
 
