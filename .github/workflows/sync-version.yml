@@ -57,18 +57,13 @@ jobs:
 
       - name: Commit changes
         run: |
-          git checkout -B release-v${VERSION}
- 
           git config user.name "github-actions"
           git config user.email "github-actions@github.com"
  
-          git add \
-            lib/froala-editor-sdk/version.rb \
-            wysiwyg-editor-ruby-sdk.gemspec \
-            release_notes.txt
+          git add lib/froala-editor-sdk/version.rb wysiwyg-editor-ruby-sdk.gemspec release_notes.txt
  
-          git commit -m "chore: release v${VERSION} (Ruby SDK)"
-          git push origin release-v${VERSION} --force
+          git commit -m "chore: release v${VERSION} (Ruby SDK)" || echo "Nothing to commit"
+          git push origin "$BRANCH"
  
 
       - name: Create Pull Request
